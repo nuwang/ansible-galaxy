@@ -1,11 +1,20 @@
-- name: Check for Galaxy download receipt
-  stat:
-    path: "{{ galaxy_server_dir }}/{{ galaxy_commit_id }}_receipt"
-  register: download_receipt
+---
 
-- name: Replace current version of Galaxy
-  shell: "rm -rf '{{ galaxy_server_dir }}' && mkdir '{{ galaxy_server_dir }}' && wget -q -O - {{ galaxy_download_url }} | tar xzf - --strip-components=1 -C {{ galaxy_server_dir }} && touch '{{ galaxy_server_dir }}/{{ galaxy_commit_id }}_receipt'"
-  when: not download_receipt.stat.exists
+- name: Download Galaxy
+  block:
 
-- name: Include virtualenv setup tasks
-  include_tasks: virtualenv.yml
+    - name: Check for Galaxy download receipt
+      stat:
+        path: "{{ galaxy_server_dir }}/{{ galaxy_commit_id }}_receipt"
+      register: download_receipt
+
+    - name: Replace current version of Galaxy
+      shell: "rm -rf '{{ galaxy_server_dir }}' && mkdir '{{ galaxy_server_dir }}' && wget -q -O - {{ galaxy_download_url }} | tar xzf - --strip-components=1 -C {{ galaxy_server_dir }} && touch '{{ galaxy_server_dir }}/{{ galaxy_commit_id }}_receipt'"
+      when: not download_receipt.stat.exists
+
+    - name: Include virtualenv setup tasks
+      include_tasks: virtualenv.yml
+
+  remote_user: "{{ galaxy_remote_users.privsep | default(omit) }}"
+  become: "{{ galaxy_become_users.privsep is not undefined }}"
+  become_user: "{{ galaxy_become_users.privsep | default(omit) }}"
