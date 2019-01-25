@@ -13,7 +13,7 @@
       when: not download_receipt.stat.exists
 
     - name: Include virtualenv setup tasks
-      include_tasks: virtualenv.yml
+      import_tasks: virtualenv.yml
 
   remote_user: "{{ galaxy_remote_users.privsep | default(omit) }}"
   become: "{{ galaxy_become_users.privsep is not undefined }}"
